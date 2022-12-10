@@ -48,7 +48,7 @@ class Auth:
         def decorated(*args, **kwargs):
             # Get the token from Authorization header
             token = None
-            if not request.headers['Authorization']:
+            if 'Authorization' not in request.headers:
                 return jsonify({'message': self.TOKEN_NOT_PROVIDED_MESSAGE}), 401
             token = request.headers['Authorization'].split(' ')[1]
 
