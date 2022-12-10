@@ -1,0 +1,11 @@
+# ides
+.idea
+.vscode
+
+# package management
+*.egg-info
+build
+dist
+
+# virtual environment
+venv
