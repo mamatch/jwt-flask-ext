@@ -11,7 +11,6 @@ class Auth:
     :param app: The flask app or the blueprint
     :param user_class:  The user class used for authentication
     :param password_validation_function: the function used to verify the validity of a password
-    :param user_id_field: The user_id field's name in the user class
     :param username_field: The username field's name in the user class
     :param password_field: The password field's name in the user class
     :param current_user_required: Is the current_user is required (for session handle)
@@ -25,7 +24,6 @@ class Auth:
     LOGIN_ERROR_MESSAGE = 'Couldn\'t login.'
 
     def __init__(self, app: Flask | Blueprint, user_class,
-                 user_id_field: str = 'id',
                  username_field: str = 'username',
                  password_field: str = 'password',
                  current_user_required: bool = False, algorithm: str = None,
@@ -33,7 +31,6 @@ class Auth:
 
         self.app = app
         self.user_class = user_class
-        self.user_id_field = user_id_field
         self.username_field = username_field
         self.password_field = password_field
         self.current_user_required = current_user_required
@@ -76,7 +73,6 @@ class Auth:
         user = self.user_class.query.filter_by(**{self.username_field: auth[self.username_field]}).first()
         if user and user.validate_password(auth[self.password_field]):
             payload = {
-                self.user_id_field: getattr(user, self.user_id_field),
                 self.username_field: getattr(user, self.username_field),
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=self.expiration_seconds),
             }

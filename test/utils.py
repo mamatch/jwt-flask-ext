@@ -19,7 +19,6 @@ def create_app():
     auth = Auth(
         app=app,
         user_class=User,
-        user_id_field='id',
         username_field='username',
         password_field='password',
         current_user_required=True,
