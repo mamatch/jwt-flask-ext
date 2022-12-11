@@ -7,22 +7,21 @@ from functools import wraps
 class Auth:
     """A class to encapsulate the handling of authentication(login and token required)
 
-            Create an object to handle login and token_required decorator
-            :param app: The flask app or the blueprint
-            :param user_class:  The user class used for authentication
-            :param password_validation_function: the function used to verify the validity of a password
-            :param user_id_field: The user_id field's name in the user class
-            :param username_field: The username field's name in the user class
-            :param password_field: The password field's name in the user class
-            :param current_user_required: Is the current_user is required (for session handle)
-            :param algorithm: The algorithm useed to generate the token
-            :param expiration_seconds: The duration of validity of a token in seconds
-            """
+    Create an object to handle login and token_required decorator
+    :param app: The flask app or the blueprint
+    :param user_class:  The user class used for authentication
+    :param password_validation_function: the function used to verify the validity of a password
+    :param user_id_field: The user_id field's name in the user class
+    :param username_field: The username field's name in the user class
+    :param password_field: The password field's name in the user class
+    :param current_user_required: Is the current_user is required (for session handle)
+    :param algorithm: The algorithm useed to generate the token
+    :param expiration_seconds: The duration of validity of a token in seconds
+    """
 
     TOKEN_NOT_PROVIDED_MESSAGE = 'No token provided.'
     UNAUTHORIZED_MESSAGE = 'Unauthorized.'
     NO_LOGIN_PROVIDED_MESSAGE = 'No login provided.'
-    SUCCESS_LOGIN_MESSAGE = 'Logged in.'
     LOGIN_ERROR_MESSAGE = 'Couldn\'t login.'
 
     def __init__(self, app: Flask | Blueprint, user_class,
@@ -87,7 +86,6 @@ class Auth:
                 algorithm=self.algorithm,
             )
             return jsonify({
-                'message': self.SUCCESS_LOGIN_MESSAGE,
                 'token': token,
             }), 200
 
