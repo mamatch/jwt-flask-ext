@@ -1,7 +1,15 @@
+from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 from flask import Blueprint, request, jsonify, current_app, Flask
 import jwt
 import datetime
 from functools import wraps
+
+
+class NoLoginProvidedException(Exception):
+    """ raised when no login has been provided """
+
+class LoginErrorException(Exception):
+    """ raised when there is error on loggin process """
 
 
 class Auth:
@@ -17,11 +25,6 @@ class Auth:
     :param algorithm: The algorithm useed to generate the token
     :param expiration_seconds: The duration of validity of a token in seconds
     """
-
-    TOKEN_NOT_PROVIDED_MESSAGE = 'No token provided.'
-    UNAUTHORIZED_MESSAGE = 'Unauthorized.'
-    NO_LOGIN_PROVIDED_MESSAGE = 'No login provided.'
-    LOGIN_ERROR_MESSAGE = 'Couldn\'t login.'
 
     def __init__(self, app: Flask | Blueprint, user_class,
                  username_field: str = 'username',
@@ -45,16 +48,16 @@ class Auth:
             # Get the token from Authorization header
             token = None
             if 'Authorization' not in request.headers:
-                return jsonify({'message': self.TOKEN_NOT_PROVIDED_MESSAGE}), 401
+                raise InvalidTokenError('No token provided.')
+
             token = request.headers['Authorization'].split(' ')[1]
 
             try:
                 data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=[self.algorithm])
                 current_user = self.user_class.query.filter_by(
                     **{self.username_field: data[self.username_field]}).first()
-            except Exception as e:
-                print(str(e))
-                return jsonify({'message': self.UNAUTHORIZED_MESSAGE}), 403
+            except (DecodeError, InvalidSignatureError, ExpiredSignatureError) as exc:
+                raise InvalidTokenError from exc
 
             if self.current_user_required:
                 return f(current_user, *args, **kwargs)
@@ -68,7 +71,7 @@ class Auth:
         auth = request.form
 
         if not auth or not auth[self.username_field] or not auth[self.password_field]:
-            return jsonify({'message': self.NO_LOGIN_PROVIDED_MESSAGE}), 401
+            raise NoLoginProvidedException('No login provided.')
 
         user = self.user_class.query.filter_by(**{self.username_field: auth[self.username_field]}).first()
         if user and user.validate_password(auth[self.password_field]):
@@ -85,4 +88,4 @@ class Auth:
                 'token': token,
             }), 200
 
-        return jsonify({'message': self.LOGIN_ERROR_MESSAGE}), 401
+        raise LoginErrorException( 'Couldn\'t login.')
