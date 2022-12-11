@@ -1,5 +1,5 @@
 from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
-from flask import Blueprint, request, jsonify, current_app, Flask
+from flask import Blueprint, request, current_app, Flask
 import jwt
 import datetime
 from functools import wraps
@@ -66,7 +66,7 @@ class Auth:
 
         return decorated
 
-    def login(self):
+    def login(self) -> dict:
         """Login a user and return a token if verified"""
         auth = request.form
 
@@ -84,8 +84,6 @@ class Auth:
                 current_app.config['SECRET_KEY'],
                 algorithm=self.algorithm,
             )
-            return jsonify({
-                'token': token,
-            }), 200
+            return { 'token': token }
 
         raise LoginErrorException( 'Couldn\'t login.')
