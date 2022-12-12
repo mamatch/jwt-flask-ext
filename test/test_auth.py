@@ -4,6 +4,9 @@ from flask import Flask, current_app
 from .models import User, db
 import requests
 from .utils import create_app
+from jwt_flask_ext.auth import NoLoginProvidedException, LoginErrorException
+from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
+
 
 
 class TestAuth(unittest.TestCase):
@@ -37,20 +40,18 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(len(users), 2)
 
     def test_login_without_data(self):
-        response = self.client.post(
-            '/login',
-        )
-        self.assertEqual(response.json['message'], 'No login provided.')
+        self.assertRaises(NoLoginProvidedException, self.client.post, '/login')
 
     def test_login_without_wrong_data(self):
-        response = self.client.post(
+        self.assertRaises(
+            LoginErrorException,
+            self.client.post,
             '/login',
             data={
                 'username': 'Oo',
                 'password': 'sdfd',
             }
         )
-        self.assertEqual(response.json['message'], 'Couldn\'t login.')
 
     def test_login_without_good_data(self):
         response = self.client.post(
@@ -60,7 +61,7 @@ class TestAuth(unittest.TestCase):
                 'password': 'JohnWick',
             }
         )
-        self.assertEqual(response.json['message'], 'Logged in.')
+        self.assertTrue('token' in response.json)
 
     def test_token_required_denied(self):
         token = self.client.post(
@@ -78,15 +79,10 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(access.text, 'protected')
 
     def test_token_required_no_header(self):
-        access = self.client.get('/protected')
-        self.assertEqual(access.status_code, 401)
+        self.assertRaises(InvalidTokenError, self.client.get, '/protected')
 
     def test_token_required_bad_header(self):
-        access = self.client.get(
-            '/protected',
-            headers={'Authorization': 'Bearer fgsdfsdfsd'}
-        )
-        self.assertEqual(access.status_code, 403)
+        self.assertRaises(InvalidTokenError, self.client.get, '/protected', headers={'Authorization': 'Bearer fgsdfsdfsd'})
 
     def test_app_exists(self):
         self.assertFalse(current_app is None)
