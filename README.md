@@ -38,7 +38,6 @@ from models import User
 app = Flask(__name__)
 auth = Auth(
     user_class=User,
-    user_id_field='id',
     username_field='username',
     password_field='password',
 )
